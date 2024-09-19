@@ -4,12 +4,16 @@ from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+import skl2onnx
+from skl2onnx import convert_sklearn
+from skl2onnx.common.data_types import FloatTensorType
 from tqdm.asyncio import tqdm
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WEBSITES_DIR = os.path.join(SCRIPT_DIR, '../output/websites')
 WEBSITES_CSV_PATH = os.path.join(SCRIPT_DIR, '../data/car-dealership-websites.csv')
 NON_CAR_DEALERSHIP_WEBSITES_PATH = os.path.join(SCRIPT_DIR, '../data/non-car-dealership-websites.txt')
+MODEL_OUTPUT_PATH = os.path.join(SCRIPT_DIR, '../dist/model.onnx')
 
 DEALER_WEBSITES_SOURCES = ['DealerInspire', 'DealerCom', 'LiveWebsites', 'TeamVelocity']
 
@@ -36,6 +40,10 @@ def main():
     # Evaluate the model
     accuracy = model.score(X_test_tfidf, y_test)
     print(f"Model accuracy: {accuracy:.4f}")
+
+
+    # Export the model to ONNX format
+    export_model_to_onnx(model, vectorizer)
 
 def get_training_data():
     dealer_websites_data = get_dealer_websites_data()
@@ -103,6 +111,19 @@ def get_website_data(url, is_dealership_website):
     except OSError:
         return None
 
+
+def export_model_to_onnx(model, vectorizer):
+    # The input type should be a FloatTensorType with the correct shape
+    initial_type = [('input', FloatTensorType([None, vectorizer.get_feature_names_out().shape[0]]))]
+
+    # Convert the model to ONNX format
+    onnx_model = convert_sklearn(model, initial_types=initial_type)
+
+    # Save the ONNX model to a file
+    with open(MODEL_OUTPUT_PATH, "wb") as f:
+        f.write(onnx_model.SerializeToString())
+
+    print(f"Model exported to {MODEL_OUTPUT_PATH}")
 
 if __name__ == '__main__':
     main()
