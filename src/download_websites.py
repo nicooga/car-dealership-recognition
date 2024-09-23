@@ -3,19 +3,15 @@ import pandas
 import aiohttp
 import asyncio
 from tqdm.asyncio import tqdm
+import constants
 
 URL_BUCKET_SIZE = 1000
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-WEBSITES_CSV_PATH = os.path.join(SCRIPT_DIR, '../data/car-dealership-websites.csv')
-WEBSITES_DIR = os.path.join(SCRIPT_DIR, '../output/websites')
-NON_CAR_DEALERSHIP_WEBSITES_PATH = os.path.join(SCRIPT_DIR, '../data/non-car-dealership-websites.txt')
 
 def main():
     asyncio.run(get_website_urls())
 
 async def get_website_urls():
-    websites_csv = pandas.read_csv(WEBSITES_CSV_PATH)
+    websites_csv = pandas.read_csv(constants.CAR_DEALERSHIP_WEBSITES_PATH)
     non_car_dealership_website_urls = get_non_car_dealership_website_urls()
     urls = websites_csv['URL'].tolist() + non_car_dealership_website_urls
     bucketed_urls = [urls[i:i+URL_BUCKET_SIZE] for i in range(0, len(urls), URL_BUCKET_SIZE)]
@@ -25,7 +21,7 @@ async def get_website_urls():
             await download_page_bucket(bucket, progress_bar)
 
 def get_non_car_dealership_website_urls():
-    with open(NON_CAR_DEALERSHIP_WEBSITES_PATH, 'r') as file:
+    with open(constants.NON_CAR_DEALERSHIP_WEBSITES_PATH, 'r') as file:
         return [url.strip() for url in file.readlines() if url.strip()]
 
 async def download_page_bucket(urls, progress_bar):
@@ -40,7 +36,7 @@ async def download_page_bucket(urls, progress_bar):
 async def download_page(session, url):
     normalized_url = normalize_url(url)
     escaped_url = url.replace("/", '\\')
-    file_name = f'{WEBSITES_DIR}/{escaped_url}.html'
+    file_name = f'{constants.WEBSITES_DIR}/{escaped_url}.html'
 
     # print(f"| Downloading: {normalized_url}")
 

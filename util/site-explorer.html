@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Test</title>
+  <!-- React and ReactDOM from CDN -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      padding: 20px;
+      background: whitesmoke;
+    }
+
+    .section {
+      margin: 20px;
+      border: 3px solid lightgray;
+    }
+
+    .sites-textarea {
+      width: 100%;
+      height: 300px;
+      font-size: 18px;
+      line-height: 1.5;
+      border-width: 0;
+      resize: vertical
+    }
+
+    .iframe-section {
+      flex-grow: 1;
+    }
+
+    .iframe {
+      border: 1px solid lightgray;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Your React code
+    function App() {
+      const [sites, setSites] = React.useState([]);
+      const [curSite, setCurSite] = React.useState(0);
+
+      return (
+        <div class="container">
+          <div class="section">
+            <textarea class="sites-textarea" onChange={onSitesChange} />
+          </div>
+
+          <div class="section controls-section">
+            <button onClick={prev}>
+              Prev
+            </button>
+
+            <button onClick={next}t >
+              Next
+            </button>
+
+            <span>
+              Current site: {sites[curSite]}
+            </span>
+          </div>
+
+          <div class="section iframe-section">
+            <iframe class="iframe" src={sites[curSite]}></iframe>
+          </div>
+        </div>
+      );
+
+      function onSitesChange(ev) {
+        const newSites = ev.target.value.split('\n');
+
+        if (!newSites.includes(sites[curSite])) {
+          setCurSite(0);
+        }
+
+        setSites(newSites);
+      }
+
+      function next() {
+        setCurSite((curSite + 1) % sites.length);
+      }
+
+      function prev() {
+        setCurSite((curSite - 1) % sites.length);
+      }
+    }
+
+    // Render the React component
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+
+</html>
